@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Os Pré-Socráticos - Colégio Tiradentes PMMG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals (Stone/Parchment), Deep Navy (PMMG reference), and Terracotta accents for a classic, educational feel. -->
+    <!-- Application Structure Plan: A dashboard-style SPA tailored for 1st-year high school students. 
+         A persistent sidebar (top-bar on mobile) provides chronological navigation through the topics. 
+         The main content area dynamically updates using JS to show didactic texts, interactive flashcards (for the 'Arkhé'), 
+         and conceptual charts to visually reinforce abstract philosophical ideas. This avoids a wall of text and encourages active clicking and discovery. -->
+    <!-- Visualization & Content Choices: 
+         - Flashcards (HTML/CSS/JS): Used for Miletus and Atomists to reveal their principles (Arkhé), engaging students' curiosity.
+         - Doughnut Chart (Chart.js): Used in Pluralists to show Empedocles' 4 roots (Earth, Water, Air, Fire) vs Thales' single root, visually explaining "Monism vs Pluralism".
+         - Interactive Toggle (JS/HTML): For Heraclitus vs Parmenides, allowing students to switch between "World of Change" and "World of Permanence".
+         - Gemini API (JS): "Mito vs Razão", "Oráculo de Mileto", "Juiz do Movimento", "Misturador Cósmico", "Tradutor Atômico" added as interactive pedagogical tools.
+         - CONFIRMING: NO SVG used. NO Mermaid used. Icons are Unicode. Layout relies on Tailwind. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Merriweather', 'serif'],
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        pmmg: '#1e3a8a', // Blue-900
+                        pmmgLight: '#3b82f6', // Blue-500
+                        accent: '#c2410c', // Orange-700
+                        parchment: '#f5f5f4', // Stone-100
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f5f5f4; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Strict Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constrain width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+
+        /* Flashcard flip effect */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; transition: transform 0.6s; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .card-back { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="text-gray-800 font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Navigation / Sidebar -->
+    <nav class="bg-pmmg text-white w-full md:w-64 flex-shrink-0 z-20 shadow-lg md:h-screen overflow-y-auto flex flex-col">
+        <div class="p-4 md:p-6 bg-pmmg flex flex-col items-center border-b border-blue-800">
+            <div class="text-3xl mb-2">🏛️</div>
+            <h1 class="text-xl font-bold text-center font-serif leading-tight">Filosofia<br><span class="text-sm font-sans font-normal text-blue-200">Colégio Tiradentes PMMG</span></h1>
+            <p class="text-xs text-blue-300 mt-2">1º Ano - Ensino Médio</p>
+        </div>
+        <ul class="flex flex-row md:flex-col p-2 md:p-4 gap-2 overflow-x-auto md:overflow-x-visible">
+            <li><button onclick="navTo('intro')" id="btn-intro" class="nav-btn w-full text-left px-4 py-3 rounded bg-blue-800 hover:bg-blue-700 transition font-medium whitespace-nowrap md:whitespace-normal">1. O que são?</button></li>
+            <li><button onclick="navTo('mileto')" id="btn-mileto" class="nav-btn w-full text-left px-4 py-3 rounded hover:bg-blue-800 transition font-medium whitespace-nowrap md:whitespace-normal">2. A Escola de Mileto</button></li>
+            <li><button onclick="navTo('pluralistas')" id="btn-pluralistas" class="nav-btn w-full text-left px-4 py-3 rounded hover:bg-blue-800 transition font-medium whitespace-nowrap md:whitespace-normal">3. Os Pluralistas</button></li>
+            <li><button onclick="navTo('movimento')" id="btn-movimento" class="nav-btn w-full text-left px-4 py-3 rounded hover:bg-blue-800 transition font-medium whitespace-nowrap md:whitespace-normal">4. O Movimento</button></li>
+            <li><button onclick="navTo('ciencia')" id="btn-ciencia" class="nav-btn w-full text-left px-4 py-3 rounded hover:bg-blue-800 transition font-medium whitespace-nowrap md:whitespace-normal">5. Ciência Moderna</button></li>
+            <li><button onclick="navTo('quiz')" id="btn-quiz" class="nav-btn w-full text-left px-4 py-3 rounded hover:bg-blue-800 transition font-medium whitespace-nowrap md:whitespace-normal">6. Gerar Quiz</button></li>
+            <li><button onclick="navTo('resumo')" id="btn-resumo" class="nav-btn w-full text-left px-4 py-3 rounded hover:bg-blue-800 transition font-medium whitespace-nowrap md:whitespace-normal">7. Gerar Resumo</button></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow overflow-y-auto p-4 md:p-8 lg:p-12 bg-parchment relative">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-6 md:p-10 border border-gray-200 min-h-full">
+            
+            <!-- SECTION: Intro -->
+            <section id="sec-intro" class="content-section fade-in">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">Conceito e Definição</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">Os Pré-Socráticos</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0 text-lg">
+                        <strong>Olá!</strong> Bem-vindo ao estudo dos primeiros filósofos da humanidade. Nesta seção, você entenderá o que significa ser um pensador "pré-socrático" e qual era a grande pergunta que eles tentavam responder.
+                    </p>
+                </div>
+
+                <div class="prose prose-lg max-w-none text-gray-700">
+                    <p>
+                        A filosofia ocidental nasceu na Grécia Antiga. Antes de Sócrates (um dos mais famosos filósofos, que estudaremos depois), existiu um grupo de pensadores geniais conhecidos como <strong>Pré-Socráticos</strong>. Eles viveram entre os séculos VII e V a.C.
+                    </p>
+                    <p>
+                        <strong>O que os unia?</strong> A busca pela <strong>explicação racional</strong> do universo. Antes deles, os gregos explicavam a origem do mundo através de mitos (histórias de deuses). Os pré-socráticos foram os primeiros a usar a razão (<em>Logos</em>) para entender a natureza (<em>Physis</em>).
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-sm text-center">
+                            <div class="text-4xl mb-3">🌿</div>
+                            <h3 class="font-bold text-xl text-pmmg mb-2">Physis (Natureza)</h3>
+                            <p class="text-sm">Era o grande objeto de estudo deles. Eles queriam entender a ordem que rege o universo inteiro. Por isso, também são chamados de <strong>Filósofos da Natureza</strong> ou Cosmólogos.</p>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-sm text-center">
+                            <div class="text-4xl mb-3">✨</div>
+                            <h3 class="font-bold text-xl text-pmmg mb-2">Arkhé (Princípio)</h3>
+                            <p class="text-sm">A grande pergunta: <em>Do que tudo é feito?</em> Eles buscavam o princípio fundamental e material que dá origem a todas as coisas que existem.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Gemini API Myth vs Reason Feature -->
+                <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6 mt-8 shadow-sm">
+                    <h3 class="text-yellow-800 font-bold text-xl mb-2 flex items-center gap-2">✨ O Salto do Mito para a Razão</h3>
+                    <p class="text-sm text-gray-700 mb-4">A grande revolução dos pré-socráticos foi parar de culpar os deuses por tudo e começar a usar a razão (Logos). Digite um fenômeno da natureza (Ex: "Um raio", "Terremoto", "As estações do ano") e a IA vai mostrar como um grego antigo explicaria isso com <strong>Mitologia</strong> versus como um <strong>Filósofo</strong> explicaria.</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input type="text" id="mito-input" class="flex-1 p-3 rounded-md border border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Digite um fenômeno natural...">
+                        <button onclick="consultMitoVsRazao()" class="bg-yellow-600 text-white px-6 py-3 rounded-md font-bold shadow hover:bg-yellow-700 transition text-nowrap">✨ Explicar Fenômeno</button>
+                    </div>
+                    <div id="mito-loading" class="hidden mt-4 text-yellow-700 text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> Consultando o oráculo e os pensadores...
+                    </div>
+                    <div id="mito-result" class="hidden mt-4 p-4 bg-white rounded-md border border-yellow-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
+                </div>
+            </section>
+
+            <!-- SECTION: Mileto -->
+            <section id="sec-mileto" class="content-section fade-in hidden">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">Os Filósofos da Natureza</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">A Escola de Mileto</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0">
+                        Nesta seção, vamos conhecer os três primeiros grandes filósofos, todos da cidade de Mileto. Cada um deles propôs uma substância diferente como a <strong>Arkhé</strong> (o princípio de tudo). <strong>Clique nos cartões abaixo para descobrir a resposta de cada um!</strong>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <!-- Card 1 -->
+                    <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
+                        <div class="transform-style-3d w-full h-full relative rounded-xl shadow-md">
+                            <div class="card-front bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
+                                <span class="text-5xl mb-4">👴</span>
+                                <h3 class="text-xl font-bold text-pmmg">Tales de Mileto</h3>
+                                <p class="text-sm text-gray-500 mt-2 font-medium">Clique para ver a Arkhé</p>
+                            </div>
+                            <div class="card-back bg-blue-100 border-2 border-pmmgLight rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
+                                <span class="text-6xl mb-2">💧</span>
+                                <h3 class="text-2xl font-bold text-pmmg">A Água</h3>
+                                <p class="text-xs text-center mt-2 text-gray-700">Tudo é água. A umidade é essencial para a vida e a matéria.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 2 -->
+                    <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
+                        <div class="transform-style-3d w-full h-full relative rounded-xl shadow-md">
+                            <div class="card-front bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
+                                <span class="text-5xl mb-4">🧔</span>
+                                <h3 class="text-xl font-bold text-pmmg text-center">Anaximandro<br>de Mileto</h3>
+                                <p class="text-sm text-gray-500 mt-2 font-medium">Clique para ver a Arkhé</p>
+                            </div>
+                            <div class="card-back bg-indigo-100 border-2 border-indigo-400 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
+                                <span class="text-6xl mb-2">♾️</span>
+                                <h3 class="text-2xl font-bold text-pmmg">O Ápeiron</h3>
+                                <p class="text-xs text-center mt-2 text-gray-700">O princípio não pode ser algo comum. É algo infinito, indefinido e ilimitado.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
+                        <div class="transform-style-3d w-full h-full relative rounded-xl shadow-md">
+                            <div class="card-front bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
+                                <span class="text-5xl mb-4">👱</span>
+                                <h3 class="text-xl font-bold text-pmmg text-center">Anaxímenes<br>de Mileto</h3>
+                                <p class="text-sm text-gray-500 mt-2 font-medium">Clique para ver a Arkhé</p>
+                            </div>
+                            <div class="card-back bg-teal-100 border-2 border-teal-400 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
+                                <span class="text-6xl mb-2">🌬️</span>
+                                <h3 class="text-2xl font-bold text-pmmg">O Ar</h3>
+                                <p class="text-xs text-center mt-2 text-gray-700">O ar, através da rarefação (vira fogo) e condensação (vira água/terra), cria tudo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing: Gemini API Oracle Feature -->
+                <div class="bg-blue-100 border-2 border-pmmg rounded-lg p-6 mt-6 mb-8 shadow-sm">
+                    <h3 class="text-pmmg font-bold text-xl mb-2 flex items-center gap-2">✨ Oráculo de Mileto: Qual é a sua Arkhé?</h3>
+                    <p class="text-sm text-gray-700 mb-4">Se você fosse um filósofo hoje, qual seria o princípio material de todas as coisas? (Ex: Energia, Plástico, Internet, Amor). Digite abaixo e nossa Inteligência Artificial analisará sua ideia como um pensador pré-socrático!</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input type="text" id="arkhe-input" class="flex-1 p-3 rounded-md border border-blue-300 focus:outline-none focus:ring-2 focus:ring-pmmg" placeholder="Digite sua Arkhé aqui (ex: Eletricidade)...">
+                        <button onclick="consultArkhe()" class="bg-pmmg text-white px-6 py-3 rounded-md font-bold shadow hover:bg-blue-800 transition">✨ Consultar Oráculo</button>
+                    </div>
+                    <div id="arkhe-loading" class="hidden mt-4 text-pmmgLight text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> A IA está pensando como um filósofo da natureza...
+                    </div>
+                    <div id="arkhe-result" class="hidden mt-4 p-4 bg-white rounded-md border border-blue-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
+                </div>
+
+                <!-- Desenvolvendo Habilidades Box -->
+                <div class="bg-orange-50 border border-accent rounded-lg p-6 mt-8">
+                    <h3 class="text-accent font-bold text-lg mb-2 flex items-center gap-2"><span>🛠️</span> Desenvolvendo Habilidades</h3>
+                    <p class="text-gray-700 mb-4">Você percebeu que Tales, Anaximandro e Anaxímenes são <strong>Monistas</strong>? Isso significa que eles acreditavam em <strong>um único</strong> elemento central gerador de tudo. Reflita: Hoje, a ciência busca um único elemento gerador ou vários? A resposta nos leva à nossa próxima seção.</p>
+                    <button onclick="navTo('pluralistas')" class="bg-accent text-white px-4 py-2 rounded hover:bg-orange-800 transition font-bold shadow">Ir para os Pluralistas ➔</button>
+                </div>
+            </section>
+
+            <!-- SECTION: Pluralistas -->
+            <section id="sec-pluralistas" class="content-section fade-in hidden">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">Múltiplos Princípios</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">Os Pluralistas</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0">
+                        Se a Escola de Mileto apostava em apenas UM princípio, os <strong>Pluralistas</strong> (como o nome sugere) argumentavam que a complexidade do universo só poderia ser explicada pela combinação de <strong>MÚLTIPLOS</strong> princípios.
+                    </p>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8 items-center mb-10">
+                    <div class="w-full md:w-1/2 prose prose-lg text-gray-700">
+                        <h3 class="text-2xl font-bold text-pmmg">Empédocles e as 4 Raízes</h3>
+                        <p>Para Empédocles, tudo no mundo é resultado da mistura de quatro elementos eternos (ou "raízes"): <strong>Terra, Fogo, Água e Ar</strong>.</p>
+                        <p>Esses elementos são unidos pela força do <strong>Amor</strong> (Atração) e separados pela força do <strong>Ódio</strong> (Repulsão).</p>
+                        
+                        <h3 class="text-2xl font-bold text-pmmg mt-6">Anaxágoras</h3>
+                        <p>Anaxágoras foi além. Ele dizia que existem sementes infinitas (<strong>Homeomerias</strong>) de todas as coisas. Tudo possui um pouco de tudo. E o que organiza essa mistura infinita? Uma Inteligência Cósmica suprema, que ele chamou de <strong>Nous</strong> (Mente).</p>
+                    </div>
+                    
+                    <div class="w-full md:w-1/2 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center">
+                        <h4 class="font-bold text-center mb-2">Visão de Empédocles do Universo</h4>
+                        <!-- CHART CONTAINER -->
+                        <div class="chart-container">
+                            <canvas id="pluralistChart"></canvas>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4 text-center">Gráfico: Composição das coisas a partir das 4 raízes misturadas pelas forças cósmicas.</p>
+                    </div>
+                </div>
+
+                <!-- Existing: Gemini API Cosmic Mixer Feature -->
+                <div class="bg-indigo-50 border-2 border-indigo-400 rounded-lg p-6 mt-8 shadow-sm">
+                    <h3 class="text-indigo-800 font-bold text-xl mb-2 flex items-center gap-2">✨ O Misturador Cósmico</h3>
+                    <p class="text-sm text-gray-700 mb-4">Como os Pluralistas explicariam as coisas que existem hoje? Digite um objeto moderno (Ex: "Um smartphone", "Um hambúrguer", "Uma guitarra") e a IA vai explicar do que ele é feito segundo Empédocles e Anaxágoras!</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input type="text" id="misturador-input" class="flex-1 p-3 rounded-md border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Digite um objeto aqui...">
+                        <button onclick="consultMisturador()" class="bg-indigo-600 text-white px-6 py-3 rounded-md font-bold shadow hover:bg-indigo-800 transition text-nowrap">✨ Misturar Elementos</button>
+                    </div>
+                    <div id="misturador-loading" class="hidden mt-4 text-indigo-600 text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> A Inteligência Cósmica (Nous) está processando...
+                    </div>
+                    <div id="misturador-result" class="hidden mt-4 p-4 bg-white rounded-md border border-indigo-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
+                </div>
+            </section>
+
+            <!-- SECTION: O Movimento -->
+            <section id="sec-movimento" class="content-section fade-in hidden">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">O Grande Debate</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">A Questão do Movimento</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0">
+                        As coisas ao nosso redor estão sempre mudando ou existe algo permanente? Esse foi o maior embate da filosofia pré-socrática! De um lado, a Escola de Éfeso (Heráclito); do outro, a Escola Eleata (Parmênides e Zenão). <strong>Use os botões abaixo para ver os dois lados.</strong>
+                    </p>
+                </div>
+
+                <!-- Interactive Switcher -->
+                <div class="flex justify-center mb-8 gap-4">
+                    <button onclick="toggleDebate('heraclito')" id="btn-heraclito" class="bg-accent text-white px-6 py-3 rounded-full font-bold shadow-md transform transition hover:scale-105 ring-4 ring-orange-200">Visão de Heráclito (A Mudança)</button>
+                    <button onclick="toggleDebate('parmenides')" id="btn-parmenides" class="bg-pmmg text-white px-6 py-3 rounded-full font-bold shadow-md transform transition hover:scale-105 opacity-60">Visão de Parmênides (A Permanência)</button>
+                </div>
+
+                <div id="debate-content" class="bg-white border-2 border-accent rounded-xl p-6 md:p-8 shadow-inner relative transition-all duration-300">
+                    <!-- Heraclitus Content -->
+                    <div id="content-heraclito" class="fade-in">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="text-5xl">🔥</div>
+                            <h3 class="text-3xl font-bold text-accent">Heráclito de Éfeso</h3>
+                        </div>
+                        <h4 class="text-xl italic text-gray-600 mb-4">"Tudo flui" (Panta Rhei)</h4>
+                        <div class="prose prose-lg text-gray-700">
+                            <p>Para Heráclito, a única verdade do universo é a <strong>mudança constante (o Devir)</strong>. Nada permanece igual.</p>
+                            <p class="font-bold text-pmmg border-l-4 border-accent pl-4 py-2 bg-orange-50">
+                                "Ninguém entra duas vezes no mesmo rio, pois quando nela se entra novamente, não se encontra as mesmas águas, e o próprio ser já se modificou."
+                            </p>
+                            <p>Ele escolheu o <strong>Fogo</strong> como princípio (Arkhé) porque o fogo é energia pura, constante transformação e movimento.</p>
+                        </div>
+                    </div>
+
+                    <!-- Parmenides Content (Hidden by default) -->
+                    <div id="content-parmenides" class="fade-in hidden">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="text-5xl">🪨</div>
+                            <h3 class="text-3xl font-bold text-pmmg">Parmênides e Zenão de Eleia</h3>
+                        </div>
+                        <h4 class="text-xl italic text-gray-600 mb-4">"O ser é, o não-ser não é."</h4>
+                        <div class="prose prose-lg text-gray-700">
+                            <p>Para a Escola Eleata, o movimento e a mudança são apenas <strong>ilusões dos nossos sentidos</strong>. A verdadeira realidade (captada pela razão) é única, imóvel, eterna e indivisível.</p>
+                            <p>Se algo "muda", deixa de ser o que era (passa ao não-ser). Mas o "não-ser" não existe! Portanto, a mudança é logicamente impossível.</p>
+                            <div class="bg-blue-50 p-4 rounded mt-4">
+                                <strong>Zenão de Eleia</strong> foi discípulo de Parmênides e criou <em>Paradoxos</em> (como a corrida de Aquiles e a Tartaruga) para provar matematicamente que o movimento é uma ilusão.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing: Gemini API Judge Feature -->
+                <div class="bg-orange-50 border-2 border-accent rounded-lg p-6 mt-8 shadow-sm">
+                    <h3 class="text-accent font-bold text-xl mb-2 flex items-center gap-2">✨ IA: O Juiz do Movimento</h3>
+                    <p class="text-sm text-gray-700 mb-4">Descreva uma mudança que você observou no mundo (Ex: "A água virou gelo", "Eu cresci 10cm", "O celular descarregou"). Nossa Inteligência Artificial vai explicar como Heráclito e Parmênides debateriam a sua observação!</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input type="text" id="movimento-input" class="flex-1 p-3 rounded-md border border-orange-300 focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Descreva uma mudança aqui...">
+                        <button onclick="consultMovimento()" class="bg-accent text-white px-6 py-3 rounded-md font-bold shadow hover:bg-orange-800 transition text-nowrap">✨ Analisar Mudança</button>
+                    </div>
+                    <div id="movimento-loading" class="hidden mt-4 text-accent text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> Convocando Heráclito e Parmênides com IA...
+                    </div>
+                    <div id="movimento-result" class="hidden mt-4 p-4 bg-white rounded-md border border-orange-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
+                </div>
+            </section>
+
+            <!-- SECTION: Ciência Moderna -->
+            <section id="sec-ciencia" class="content-section fade-in hidden">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">Legado para o Futuro</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">Filosofia Antiga e Ciência Moderna</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0">
+                        O fim do período pré-socrático trouxe ideias que fundamentaram a ciência que conhecemos hoje: a matemática como linguagem do universo e a teoria atômica.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <!-- Pitágoras -->
+                    <div class="bg-white border-t-4 border-pmmg shadow-lg rounded-lg p-6">
+                        <div class="text-center text-5xl mb-4 text-pmmg">📐</div>
+                        <h3 class="text-2xl font-bold text-center text-pmmg mb-4">Pitágoras e os Pitagóricos</h3>
+                        <p class="text-gray-700">Para a escola pitagórica, o princípio de todas as coisas não era uma matéria (como água ou fogo), mas sim uma abstração: <strong>Os Números</strong>.</p>
+                        <p class="text-gray-700 mt-2">Eles perceberam que o universo possui proporção, harmonia e ordem (como na música e na geometria). A matemática, portanto, é a linguagem oculta da natureza, uma ideia essencial para a Física moderna.</p>
+                    </div>
+
+                    <!-- Atomistas -->
+                    <div class="bg-white border-t-4 border-accent shadow-lg rounded-lg p-6">
+                        <div class="text-center text-5xl mb-4 text-accent">⚛️</div>
+                        <h3 class="text-2xl font-bold text-center text-accent mb-4">Os Atomistas (Demócrito)</h3>
+                        <p class="text-gray-700">Demócrito e Leucipo resolveram o problema do movimento (Heráclito vs Parmênides) propondo que o universo é feito de duas coisas: <strong>Átomos e o Vazio</strong>.</p>
+                        <p class="text-gray-700 mt-2">Átomos ("a-tomo" = sem divisão) são partículas minúsculas, sólidas e eternas (ideia de Parmênides). Mas eles se movem através do Vazio, colidindo e formando tudo o que existe (ideia de Heráclito). <strong>O destino do atomismo</strong> foi servir de base para a Química moderna milhares de anos depois!</p>
+                    </div>
+                </div>
+                
+                <!-- Concluding Graph -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mt-10">
+                    <h3 class="text-xl font-bold text-center text-pmmg mb-4">Evolução do Pensamento Racional (Resumo Visual)</h3>
+                    <!-- CHART CONTAINER -->
+                    <div class="chart-container h-64">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                    <p class="text-sm text-center text-gray-500 mt-2">Comparação: De princípios simples (Água) para complexos (Átomos/Números).</p>
+                </div>
+                
+                <!-- Existing: Gemini API Atomic Translator Feature -->
+                <div class="bg-teal-50 border-2 border-teal-500 rounded-lg p-6 mt-10 shadow-sm">
+                    <h3 class="text-teal-800 font-bold text-xl mb-2 flex items-center gap-2">✨ O Tradutor Atômico</h3>
+                    <p class="text-sm text-gray-700 mb-4">Demócrito achava que TUDO era feito de átomos colidindo. Digite um sentimento, clima ou fenômeno (Ex: "Alegria", "Uma tempestade", "O som do violão") e a IA criará uma teoria atômica divertida sobre como são os átomos que formam isso!</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input type="text" id="atomo-input" class="flex-1 p-3 rounded-md border border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Digite um sentimento ou fenômeno...">
+                        <button onclick="consultAtomos()" class="bg-teal-600 text-white px-6 py-3 rounded-md font-bold shadow hover:bg-teal-800 transition text-nowrap">✨ Ver os Átomos</button>
+                    </div>
+                    <div id="atomo-loading" class="hidden mt-4 text-teal-600 text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> Observando o colapso dos átomos no vazio...
+                    </div>
+                    <div id="atomo-result" class="hidden mt-4 p-4 bg-white rounded-md border border-teal-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
+                </div>
+
+            </section>
+
+            <!-- SECTION: Quiz IA -->
+            <section id="sec-quiz" class="content-section fade-in hidden">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">Desafio Final</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">Teste Seus Conhecimentos</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0">
+                        Chegou a hora de testar o que você aprendeu! Digite qualquer tema que estudamos (ex: "Heráclito", "Escola de Mileto", "Os Pluralistas") e a Inteligência Artificial criará um <strong>Quiz exclusivo</strong> para você.
+                    </p>
+                </div>
+
+                <div class="bg-white border-2 border-gray-300 rounded-lg p-6 shadow-sm">
+                    <h3 class="text-gray-800 font-bold text-xl mb-4 flex items-center gap-2">✨ Gerador de Quiz Filosófico</h3>
+                    <div class="flex flex-col md:flex-row gap-2 mb-6">
+                        <input type="text" id="quiz-input" class="flex-1 p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pmmg" placeholder="Digite o tema do quiz (Ex: Tales de Mileto)...">
+                        <button onclick="gerarQuiz()" class="bg-pmmg text-white px-8 py-3 rounded-md font-bold shadow hover:bg-blue-800 transition text-nowrap">✨ Criar Meu Quiz</button>
+                    </div>
+                    
+                    <div id="quiz-loading" class="hidden mt-4 text-pmmgLight text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> O oráculo está formulando as perguntas...
+                    </div>
+                    
+                    <!-- Quiz Result Area -->
+                    <div id="quiz-result" class="hidden mt-4 p-6 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base leading-relaxed shadow-inner prose prose-blue max-w-none"></div>
+                </div>
+            </section>
+
+            <!-- SECTION: Resumo IA -->
+            <section id="sec-resumo" class="content-section fade-in hidden">
+                <p class="text-accent font-bold uppercase tracking-wide text-sm mb-2">Revisão Rápida</p>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-pmmg mb-6">Resumo Inteligente</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-pmmg p-5 mb-8 rounded-r">
+                    <p class="mb-0">
+                        Precisa de uma explicação rápida para fixar o conteúdo ou tirar uma dúvida? Digite qualquer conceito ou filósofo que estudamos (ex: "Physis", "Arkhé", "Devir", "Empédocles") e a Inteligência Artificial fará um <strong>resumo claro, direto e didático</strong> para você!
+                    </p>
+                </div>
+
+                <div class="bg-white border-2 border-green-400 rounded-lg p-6 shadow-sm">
+                    <h3 class="text-green-800 font-bold text-xl mb-4 flex items-center gap-2">✨ Gerador de Resumo Filosófico</h3>
+                    <div class="flex flex-col md:flex-row gap-2 mb-6">
+                        <input type="text" id="resumo-input" class="flex-1 p-3 rounded-md border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Digite o tema que deseja resumir (Ex: O que é Ápeiron?)...">
+                        <button onclick="gerarResumo()" class="bg-green-600 text-white px-8 py-3 rounded-md font-bold shadow hover:bg-green-700 transition text-nowrap">✨ Resumir</button>
+                    </div>
+                    
+                    <div id="resumo-loading" class="hidden mt-4 text-green-700 text-sm font-medium animate-pulse flex items-center gap-2">
+                        <span>⏳</span> O professor digital está organizando as anotações...
+                    </div>
+                    
+                    <!-- Resumo Result Area -->
+                    <div id="resumo-result" class="hidden mt-4 p-6 bg-green-50 rounded-lg border border-green-200 text-gray-800 text-base leading-relaxed shadow-inner max-w-none"></div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State variables
+        let currentSectionId = 'intro';
+        let doughnutChartInst = null;
+        let barChartInst = null;
+
+        // Gemini API configuration
+        const apiKey = "";
+
+        // Core Gemini API Fetcher with exponential backoff
+        async function callGeminiAPI(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            let retries = 5;
+            let delay = 1000;
+            
+            while (retries > 0) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Nenhuma resposta obtida da IA.";
+                } catch (error) {
+                    retries--;
+                    if (retries === 0) return "Desculpe, os sábios estão descansando. Ocorreu um erro ao consultar a IA. Tente novamente mais tarde.";
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // Feature 0: Mito vs Razão (Gemini API)
+        async function consultMitoVsRazao() {
+            const inputField = document.getElementById('mito-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('mito-result');
+            const loadingDiv = document.getElementById('mito-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Você é um professor de filosofia ensinando sobre a origem da filosofia (a passagem do Mito para a Razão/Logos). O aluno perguntou sobre o fenômeno natural: '${input}'. Em dois parágrafos curtos, explique: 1) Como a Mitologia Grega explicaria esse fenômeno (invente ou use um deus grego clássico). 2) Como a Filosofia Pré-Socrática (focada na Physis e na Razão) tentaria explicar isso desmistificando os deuses. Use emojis e tom didático.`;
+            
+            const response = await callGeminiAPI(prompt);
+            
+            // Format markdown bold and newlines to HTML
+            const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            
+            resultDiv.innerHTML = formattedResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
+        // Feature 1: Oráculo de Mileto (Gemini API)
+        async function consultArkhe() {
+            const inputField = document.getElementById('arkhe-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('arkhe-result');
+            const loadingDiv = document.getElementById('arkhe-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Você é um professor de filosofia amigável, ensinando alunos do 1º ano do Ensino Médio sobre os pré-socráticos. O aluno sugeriu que a 'Arkhé' (o princípio fundamental do universo) é: '${input}'. Responda em até 2 parágrafos curtos de forma didática: 1) O que Tales, Anaximandro ou Anaxímenes achariam dessa ideia? 2) Faz sentido filosoficamente nos dias de hoje? Use emojis para deixar o texto leve.`;
+            
+            const response = await callGeminiAPI(prompt);
+            
+            // Format markdown bold and newlines to HTML
+            const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            
+            resultDiv.innerHTML = formattedResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
+        // Feature 2: Juiz do Movimento (Gemini API)
+        async function consultMovimento() {
+            const inputField = document.getElementById('movimento-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('movimento-result');
+            const loadingDiv = document.getElementById('movimento-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Você é um professor de filosofia do Ensino Médio explicando o debate sobre o movimento. Um aluno descreveu a seguinte situação do dia a dia: '${input}'. Explique brevemente (em até 2 parágrafos curtos) como Heráclito interpretaria isso para provar que "tudo flui" e como Parmênides argumentaria contra, dizendo que a mudança essencial é uma ilusão. Seja didático, claro e evite palavras muito difíceis. Use emojis para ilustrar.`;
+            
+            const response = await callGeminiAPI(prompt);
+            
+            // Format markdown bold and newlines to HTML
+            const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            
+            resultDiv.innerHTML = formattedResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
+        // Feature 3: O Misturador Cósmico (Gemini API)
+        async function consultMisturador() {
+            const inputField = document.getElementById('misturador-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('misturador-result');
+            const loadingDiv = document.getElementById('misturador-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Você é um professor de filosofia animado ensinando alunos do Ensino Médio. Um aluno perguntou: "Do que é feito '${input}'?". Usando a teoria dos filósofos Pluralistas, explique em um parágrafo curto como Empédocles diria que isso é formado (usando as 4 raízes e Amor/Ódio) e, em outro parágrafo, como Anaxágoras explicaria (usando as sementes/homeomerias e o Nous). Use linguagem acessível, divertida e com emojis.`;
+            
+            const response = await callGeminiAPI(prompt);
+            
+            const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            
+            resultDiv.innerHTML = formattedResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
+        // Feature 5: Gerador de Quiz (Gemini API)
+        async function gerarQuiz() {
+            const inputField = document.getElementById('quiz-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('quiz-result');
+            const loadingDiv = document.getElementById('quiz-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Você é um professor de filosofia elaborando exercícios para alunos do 1º ano do Ensino Médio. Crie um pequeno quiz de 3 questões de múltipla escolha (A, B, C, D) sobre o seguinte tema da filosofia pré-socrática: '${input}'. 
+            
+            Formate a sua resposta INTEIRA usando as seguintes tags HTML para ficar bonito na tela: 
+            Use <h3> para o título do quiz.
+            Use <div> e <p class='font-bold mt-4'> para as perguntas.
+            Use <ul class='ml-4 mt-2 space-y-1'> e <li> para as alternativas.
+            MUITO IMPORTANTE: No final do quiz, esconda o gabarito e as explicações usando a tag HTML exata abaixo:
+            <details class='mt-6'><summary class='font-bold cursor-pointer text-pmmg bg-blue-100 p-3 rounded hover:bg-blue-200 transition'>✅ Ver Gabarito e Explicações</summary><div class='mt-2 p-4 bg-white border border-blue-200 rounded text-sm'>...coloque o gabarito explicado aqui...</div></details>. 
+            Não use marcação Markdown como (\`\`\`html), retorne apenas o texto com as tags HTML embutidas de forma limpa.`;
+            
+            const response = await callGeminiAPI(prompt);
+            
+            // Remove potential markdown code blocks if the LLM included them
+            const cleanResponse = response.replace(/```html|```/g, '');
+            
+            resultDiv.innerHTML = cleanResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
+        // Feature 6: Gerador de Resumo (Gemini API)
+        async function gerarResumo() {
+            const inputField = document.getElementById('resumo-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('resumo-result');
+            const loadingDiv = document.getElementById('resumo-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Você é um professor de filosofia amigável e super didático, ajudando alunos do 1º ano do Ensino Médio a revisarem a matéria sobre Pré-Socráticos. 
+            Crie um resumo claro, direto e fácil de entender sobre: '${input}'. 
+            
+            Regras da resposta:
+            1. Formate usando tags HTML limpas (não use markdown).
+            2. Comece com um <h3> contendo o título do resumo.
+            3. Use 2 a 3 parágrafos curtos (<p class='mb-3'>).
+            4. Se houverem pontos chaves, use uma lista <ul> com <li> e a classe 'list-disc ml-6 mb-3'.
+            5. Destaque os termos mais importantes em negrito usando <strong>.
+            6. Use alguns emojis para deixar a leitura leve e atrativa para os jovens.`;
+            
+            const response = await callGeminiAPI(prompt);
+            
+            // Remove potential markdown code blocks if the LLM included them
+            const cleanResponse = response.replace(/```html|```/g, '');
+            
+            resultDiv.innerHTML = cleanResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
+        // On Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            // Highlight default nav
+            document.getElementById('btn-intro').classList.remove('bg-blue-800');
+            document.getElementById('btn-intro').classList.add('bg-blue-600', 'border-l-4', 'border-white');
+        });
+
+        // Functional Navigation
+        function navTo(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('fade-in'); // reset animation
+            });
+
+            // Show selected
+            const target = document.getElementById('sec-' + sectionId);
+            target.classList.remove('hidden');
+            // Small timeout to trigger CSS animation restart
+            setTimeout(() => target.classList.add('fade-in'), 10);
+
+            // Update Nav styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'border-l-4', 'border-white');
+                btn.classList.add('hover:bg-blue-800');
+            });
+            
+            const activeBtn = document.getElementById('btn-' + sectionId);
+            activeBtn.classList.remove('hover:bg-blue-800');
+            activeBtn.classList.add('bg-blue-600', 'border-l-4', 'border-white');
+
+            currentSectionId = sectionId;
+            
+            // Scroll top main area
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Interactive Flashcards (Mileto)
+        function flipCard(cardElement) {
+            const inner = cardElement.querySelector('.transform-style-3d');
+            if (inner.style.transform === 'rotateY(180deg)') {
+                inner.style.transform = 'rotateY(0deg)';
+            } else {
+                inner.style.transform = 'rotateY(180deg)';
+            }
+        }
+
+        // Interactive Debate Toggle (Movimento)
+        function toggleDebate(view) {
+            const btnHeraclito = document.getElementById('btn-heraclito');
+            const btnParmenides = document.getElementById('btn-parmenides');
+            const contentHeraclito = document.getElementById('content-heraclito');
+            const contentParmenides = document.getElementById('content-parmenides');
+            const container = document.getElementById('debate-content');
+
+            if (view === 'heraclito') {
+                btnHeraclito.classList.remove('opacity-60', 'bg-gray-400');
+                btnHeraclito.classList.add('ring-4', 'ring-orange-200', 'bg-accent');
+                
+                btnParmenides.classList.add('opacity-60', 'bg-pmmg');
+                btnParmenides.classList.remove('ring-4', 'ring-blue-200');
+
+                contentParmenides.classList.add('hidden');
+                contentHeraclito.classList.remove('hidden');
+                container.classList.remove('border-pmmg');
+                container.classList.add('border-accent');
+                
+            } else {
+                btnParmenides.classList.remove('opacity-60', 'bg-gray-400');
+                btnParmenides.classList.add('ring-4', 'ring-blue-200', 'bg-pmmg');
+                
+                btnHeraclito.classList.add('opacity-60', 'bg-accent');
+                btnHeraclito.classList.remove('ring-4', 'ring-orange-200');
+
+                contentHeraclito.classList.add('hidden');
+                contentParmenides.classList.remove('hidden');
+                container.classList.remove('border-accent');
+                container.classList.add('border-pmmg');
+            }
+        }
+
+        // Charts Initialization
+        function initCharts() {
+            // Chart 1: Doughnut for Pluralists
+            const ctxPlural = document.getElementById('pluralistChart').getContext('2d');
+            doughnutChartInst = new Chart(ctxPlural, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Terra 🪨', 'Fogo 🔥', 'Ar 🌬️', 'Água 💧'],
+                    datasets: [{
+                        data: [25, 25, 25, 25], // Equal parts for visual representation
+                        backgroundColor: ['#8B4513', '#c2410c', '#e0f2fe', '#3b82f6'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': Misturados por Amor/Ódio';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Conceptual Bar Chart for Science section
+            const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+            barChartInst = new Chart(ctxTimeline, {
+                type: 'bar',
+                data: {
+                    labels: ['Tales', 'Empédocles', 'Pitágoras', 'Demócrito'],
+                    datasets: [{
+                        label: 'Nível de Abstração Teórica',
+                        data: [1, 3, 5, 5],
+                        backgroundColor: ['#3b82f6', '#c2410c', '#1e3a8a', '#9ca3af'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 6,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 1) return 'Matéria Simples';
+                                    if (value === 3) return 'Múltiplas Matérias';
+                                    if (value === 5) return 'Abstração/Micro';
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let txt = "";
+                                    if(context.raw === 1) txt = "Elementos observáveis (Água)";
+                                    if(context.raw === 3) txt = "Combinação de elementos";
+                                    if(context.raw === 5) txt = "Matemática ou partículas invisíveis (Átomos)";
+                                    return txt;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

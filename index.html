@@ -8,19 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Chosen Palette: Warm Neutrals (Stone/Parchment), Deep Navy (PMMG reference), and Terracotta accents for a classic, educational feel. -->
-    <!-- Application Structure Plan: A dashboard-style SPA tailored for 1st-year high school students. 
-         A persistent sidebar (top-bar on mobile) provides chronological navigation through the topics. 
-         The main content area dynamically updates using JS to show didactic texts, interactive flashcards (for the 'Arkhé'), 
-         and conceptual charts to visually reinforce abstract philosophical ideas. This avoids a wall of text and encourages active clicking and discovery. -->
-    <!-- Visualization & Content Choices: 
-         - Flashcards (HTML/CSS/JS): Used for Miletus and Atomists to reveal their principles (Arkhé), engaging students' curiosity.
-         - Doughnut Chart (Chart.js): Used in Pluralists to show Empedocles' 4 roots (Earth, Water, Air, Fire) vs Thales' single root, visually explaining "Monism vs Pluralism".
-         - Interactive Toggle (JS/HTML): For Heraclitus vs Parmenides, allowing students to switch between "World of Change" and "World of Permanence".
-         - Gemini API (JS): "Mito vs Razão", "Oráculo de Mileto", "Juiz do Movimento", "Misturador Cósmico", "Tradutor Atômico" added as interactive pedagogical tools.
-         - CONFIRMING: NO SVG used. NO Mermaid used. Icons are Unicode. Layout relies on Tailwind. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
     <script>
         tailwind.config = {
             theme: {
@@ -30,10 +17,10 @@
                         sans: ['Roboto', 'sans-serif'],
                     },
                     colors: {
-                        pmmg: '#1e3a8a', // Blue-900
-                        pmmgLight: '#3b82f6', // Blue-500
-                        accent: '#c2410c', // Orange-700
-                        parchment: '#f5f5f4', // Stone-100
+                        pmmg: '#1e3a8a', 
+                        pmmgLight: '#3b82f6', 
+                        accent: '#c2410c', 
+                        parchment: '#f5f5f4', 
                     }
                 }
             }
@@ -47,11 +34,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Strict Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px; /* Constrain width */
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
             height: 300px;
@@ -61,7 +47,6 @@
             .chart-container { height: 350px; }
         }
 
-        /* Flashcard flip effect */
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; transition: transform 0.6s; }
         .backface-hidden { backface-visibility: hidden; }
@@ -127,7 +112,6 @@
                     </div>
                 </div>
 
-                <!-- NEW: Gemini API Myth vs Reason Feature -->
                 <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6 mt-8 shadow-sm">
                     <h3 class="text-yellow-800 font-bold text-xl mb-2 flex items-center gap-2">✨ O Salto do Mito para a Razão</h3>
                     <p class="text-sm text-gray-700 mb-4">A grande revolução dos pré-socráticos foi parar de culpar os deuses por tudo e começar a usar a razão (Logos). Digite um fenômeno da natureza (Ex: "Um raio", "Terremoto", "As estações do ano") e a IA vai mostrar como um grego antigo explicaria isso com <strong>Mitologia</strong> versus como um <strong>Filósofo</strong> explicaria.</p>
@@ -154,7 +138,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <!-- Card 1 -->
                     <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
                         <div class="transform-style-3d w-full h-full relative rounded-xl shadow-md">
                             <div class="card-front bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
@@ -170,7 +153,6 @@
                         </div>
                     </div>
                     
-                    <!-- Card 2 -->
                     <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
                         <div class="transform-style-3d w-full h-full relative rounded-xl shadow-md">
                             <div class="card-front bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
@@ -186,7 +168,6 @@
                         </div>
                     </div>
 
-                    <!-- Card 3 -->
                     <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
                         <div class="transform-style-3d w-full h-full relative rounded-xl shadow-md">
                             <div class="card-front bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center justify-center p-4 backface-hidden">
@@ -203,7 +184,6 @@
                     </div>
                 </div>
 
-                <!-- Existing: Gemini API Oracle Feature -->
                 <div class="bg-blue-100 border-2 border-pmmg rounded-lg p-6 mt-6 mb-8 shadow-sm">
                     <h3 class="text-pmmg font-bold text-xl mb-2 flex items-center gap-2">✨ Oráculo de Mileto: Qual é a sua Arkhé?</h3>
                     <p class="text-sm text-gray-700 mb-4">Se você fosse um filósofo hoje, qual seria o princípio material de todas as coisas? (Ex: Energia, Plástico, Internet, Amor). Digite abaixo e nossa Inteligência Artificial analisará sua ideia como um pensador pré-socrático!</p>
@@ -217,7 +197,6 @@
                     <div id="arkhe-result" class="hidden mt-4 p-4 bg-white rounded-md border border-blue-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
                 </div>
 
-                <!-- Desenvolvendo Habilidades Box -->
                 <div class="bg-orange-50 border border-accent rounded-lg p-6 mt-8">
                     <h3 class="text-accent font-bold text-lg mb-2 flex items-center gap-2"><span>🛠️</span> Desenvolvendo Habilidades</h3>
                     <p class="text-gray-700 mb-4">Você percebeu que Tales, Anaximandro e Anaxímenes são <strong>Monistas</strong>? Isso significa que eles acreditavam em <strong>um único</strong> elemento central gerador de tudo. Reflita: Hoje, a ciência busca um único elemento gerador ou vários? A resposta nos leva à nossa próxima seção.</p>
@@ -248,7 +227,6 @@
                     
                     <div class="w-full md:w-1/2 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center">
                         <h4 class="font-bold text-center mb-2">Visão de Empédocles do Universo</h4>
-                        <!-- CHART CONTAINER -->
                         <div class="chart-container">
                             <canvas id="pluralistChart"></canvas>
                         </div>
@@ -256,7 +234,6 @@
                     </div>
                 </div>
 
-                <!-- Existing: Gemini API Cosmic Mixer Feature -->
                 <div class="bg-indigo-50 border-2 border-indigo-400 rounded-lg p-6 mt-8 shadow-sm">
                     <h3 class="text-indigo-800 font-bold text-xl mb-2 flex items-center gap-2">✨ O Misturador Cósmico</h3>
                     <p class="text-sm text-gray-700 mb-4">Como os Pluralistas explicariam as coisas que existem hoje? Digite um objeto moderno (Ex: "Um smartphone", "Um hambúrguer", "Uma guitarra") e a IA vai explicar do que ele é feito segundo Empédocles e Anaxágoras!</p>
@@ -282,14 +259,12 @@
                     </p>
                 </div>
 
-                <!-- Interactive Switcher -->
                 <div class="flex justify-center mb-8 gap-4">
                     <button onclick="toggleDebate('heraclito')" id="btn-heraclito" class="bg-accent text-white px-6 py-3 rounded-full font-bold shadow-md transform transition hover:scale-105 ring-4 ring-orange-200">Visão de Heráclito (A Mudança)</button>
                     <button onclick="toggleDebate('parmenides')" id="btn-parmenides" class="bg-pmmg text-white px-6 py-3 rounded-full font-bold shadow-md transform transition hover:scale-105 opacity-60">Visão de Parmênides (A Permanência)</button>
                 </div>
 
                 <div id="debate-content" class="bg-white border-2 border-accent rounded-xl p-6 md:p-8 shadow-inner relative transition-all duration-300">
-                    <!-- Heraclitus Content -->
                     <div id="content-heraclito" class="fade-in">
                         <div class="flex items-center gap-4 mb-4">
                             <div class="text-5xl">🔥</div>
@@ -305,7 +280,6 @@
                         </div>
                     </div>
 
-                    <!-- Parmenides Content (Hidden by default) -->
                     <div id="content-parmenides" class="fade-in hidden">
                         <div class="flex items-center gap-4 mb-4">
                             <div class="text-5xl">🪨</div>
@@ -322,7 +296,6 @@
                     </div>
                 </div>
 
-                <!-- Existing: Gemini API Judge Feature -->
                 <div class="bg-orange-50 border-2 border-accent rounded-lg p-6 mt-8 shadow-sm">
                     <h3 class="text-accent font-bold text-xl mb-2 flex items-center gap-2">✨ IA: O Juiz do Movimento</h3>
                     <p class="text-sm text-gray-700 mb-4">Descreva uma mudança que você observou no mundo (Ex: "A água virou gelo", "Eu cresci 10cm", "O celular descarregou"). Nossa Inteligência Artificial vai explicar como Heráclito e Parmênides debateriam a sua observação!</p>
@@ -349,7 +322,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <!-- Pitágoras -->
                     <div class="bg-white border-t-4 border-pmmg shadow-lg rounded-lg p-6">
                         <div class="text-center text-5xl mb-4 text-pmmg">📐</div>
                         <h3 class="text-2xl font-bold text-center text-pmmg mb-4">Pitágoras e os Pitagóricos</h3>
@@ -357,7 +329,6 @@
                         <p class="text-gray-700 mt-2">Eles perceberam que o universo possui proporção, harmonia e ordem (como na música e na geometria). A matemática, portanto, é a linguagem oculta da natureza, uma ideia essencial para a Física moderna.</p>
                     </div>
 
-                    <!-- Atomistas -->
                     <div class="bg-white border-t-4 border-accent shadow-lg rounded-lg p-6">
                         <div class="text-center text-5xl mb-4 text-accent">⚛️</div>
                         <h3 class="text-2xl font-bold text-center text-accent mb-4">Os Atomistas (Demócrito)</h3>
@@ -366,17 +337,14 @@
                     </div>
                 </div>
                 
-                <!-- Concluding Graph -->
                 <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mt-10">
                     <h3 class="text-xl font-bold text-center text-pmmg mb-4">Evolução do Pensamento Racional (Resumo Visual)</h3>
-                    <!-- CHART CONTAINER -->
                     <div class="chart-container h-64">
                         <canvas id="timelineChart"></canvas>
                     </div>
                     <p class="text-sm text-center text-gray-500 mt-2">Comparação: De princípios simples (Água) para complexos (Átomos/Números).</p>
                 </div>
                 
-                <!-- Existing: Gemini API Atomic Translator Feature -->
                 <div class="bg-teal-50 border-2 border-teal-500 rounded-lg p-6 mt-10 shadow-sm">
                     <h3 class="text-teal-800 font-bold text-xl mb-2 flex items-center gap-2">✨ O Tradutor Atômico</h3>
                     <p class="text-sm text-gray-700 mb-4">Demócrito achava que TUDO era feito de átomos colidindo. Digite um sentimento, clima ou fenômeno (Ex: "Alegria", "Uma tempestade", "O som do violão") e a IA criará uma teoria atômica divertida sobre como são os átomos que formam isso!</p>
@@ -389,7 +357,6 @@
                     </div>
                     <div id="atomo-result" class="hidden mt-4 p-4 bg-white rounded-md border border-teal-200 text-gray-800 text-base leading-relaxed shadow-inner"></div>
                 </div>
-
             </section>
 
             <!-- SECTION: Quiz IA -->
@@ -414,7 +381,6 @@
                         <span>⏳</span> O oráculo está formulando as perguntas...
                     </div>
                     
-                    <!-- Quiz Result Area -->
                     <div id="quiz-result" class="hidden mt-4 p-6 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base leading-relaxed shadow-inner prose prose-blue max-w-none"></div>
                 </div>
             </section>
@@ -441,7 +407,6 @@
                         <span>⏳</span> O professor digital está organizando as anotações...
                     </div>
                     
-                    <!-- Resumo Result Area -->
                     <div id="resumo-result" class="hidden mt-4 p-6 bg-green-50 rounded-lg border border-green-200 text-gray-800 text-base leading-relaxed shadow-inner max-w-none"></div>
                 </div>
             </section>
@@ -451,17 +416,16 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-        // State variables
         let currentSectionId = 'intro';
         let doughnutChartInst = null;
         let barChartInst = null;
 
-        // Gemini API configuration
+        // A SUA CHAVE DE API AQUI (COM ASPAS):
         const apiKey = "AIzaSyCVEx9xVuc2ocBd_0zhReQGiEBjmQMIYbA";
 
-        // Core Gemini API Fetcher with exponential backoff
+        // Core Gemini API Fetcher
         async function callGeminiAPI(prompt) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${"AIzaSyCVEx9xVuc2ocBd_0zhReQGiEBjmQMIYbA"}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
             let retries = 5;
             let delay = 1000;
@@ -485,7 +449,6 @@
             }
         }
 
-        // Feature 0: Mito vs Razão (Gemini API)
         async function consultMitoVsRazao() {
             const inputField = document.getElementById('mito-input');
             const input = inputField.value.trim();
@@ -501,8 +464,6 @@
             const prompt = `Você é um professor de filosofia ensinando sobre a origem da filosofia (a passagem do Mito para a Razão/Logos). O aluno perguntou sobre o fenômeno natural: '${input}'. Em dois parágrafos curtos, explique: 1) Como a Mitologia Grega explicaria esse fenômeno (invente ou use um deus grego clássico). 2) Como a Filosofia Pré-Socrática (focada na Physis e na Razão) tentaria explicar isso desmistificando os deuses. Use emojis e tom didático.`;
             
             const response = await callGeminiAPI(prompt);
-            
-            // Format markdown bold and newlines to HTML
             const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             
             resultDiv.innerHTML = formattedResponse;
@@ -511,7 +472,6 @@
             inputField.disabled = false;
         }
 
-        // Feature 1: Oráculo de Mileto (Gemini API)
         async function consultArkhe() {
             const inputField = document.getElementById('arkhe-input');
             const input = inputField.value.trim();
@@ -527,8 +487,6 @@
             const prompt = `Você é um professor de filosofia amigável, ensinando alunos do 1º ano do Ensino Médio sobre os pré-socráticos. O aluno sugeriu que a 'Arkhé' (o princípio fundamental do universo) é: '${input}'. Responda em até 2 parágrafos curtos de forma didática: 1) O que Tales, Anaximandro ou Anaxímenes achariam dessa ideia? 2) Faz sentido filosoficamente nos dias de hoje? Use emojis para deixar o texto leve.`;
             
             const response = await callGeminiAPI(prompt);
-            
-            // Format markdown bold and newlines to HTML
             const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             
             resultDiv.innerHTML = formattedResponse;
@@ -537,7 +495,6 @@
             inputField.disabled = false;
         }
 
-        // Feature 2: Juiz do Movimento (Gemini API)
         async function consultMovimento() {
             const inputField = document.getElementById('movimento-input');
             const input = inputField.value.trim();
@@ -553,8 +510,6 @@
             const prompt = `Você é um professor de filosofia do Ensino Médio explicando o debate sobre o movimento. Um aluno descreveu a seguinte situação do dia a dia: '${input}'. Explique brevemente (em até 2 parágrafos curtos) como Heráclito interpretaria isso para provar que "tudo flui" e como Parmênides argumentaria contra, dizendo que a mudança essencial é uma ilusão. Seja didático, claro e evite palavras muito difíceis. Use emojis para ilustrar.`;
             
             const response = await callGeminiAPI(prompt);
-            
-            // Format markdown bold and newlines to HTML
             const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             
             resultDiv.innerHTML = formattedResponse;
@@ -563,7 +518,6 @@
             inputField.disabled = false;
         }
 
-        // Feature 3: O Misturador Cósmico (Gemini API)
         async function consultMisturador() {
             const inputField = document.getElementById('misturador-input');
             const input = inputField.value.trim();
@@ -579,7 +533,6 @@
             const prompt = `Você é um professor de filosofia animado ensinando alunos do Ensino Médio. Um aluno perguntou: "Do que é feito '${input}'?". Usando a teoria dos filósofos Pluralistas, explique em um parágrafo curto como Empédocles diria que isso é formado (usando as 4 raízes e Amor/Ódio) e, em outro parágrafo, como Anaxágoras explicaria (usando as sementes/homeomerias e o Nous). Use linguagem acessível, divertida e com emojis.`;
             
             const response = await callGeminiAPI(prompt);
-            
             const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             
             resultDiv.innerHTML = formattedResponse;
@@ -588,7 +541,29 @@
             inputField.disabled = false;
         }
 
-        // Feature 5: Gerador de Quiz (Gemini API)
+        async function consultAtomos() {
+            const inputField = document.getElementById('atomo-input');
+            const input = inputField.value.trim();
+            if (!input) return;
+            
+            const resultDiv = document.getElementById('atomo-result');
+            const loadingDiv = document.getElementById('atomo-loading');
+            
+            loadingDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            inputField.disabled = true;
+            
+            const prompt = `Assuma a personalidade do filósofo pré-socrático Demócrito conversando com um jovem de hoje. Ele quer saber como você explica a existência de '${input}' usando APENAS átomos e o vazio. Descreva de forma criativa, exagerada e divertida como seriam os átomos que formam isso (ex: átomos redondos e lisos deslizando para coisas boas, pontiagudos e irregulares para coisas difíceis, etc). Máximo de 2 parágrafos curtos. Use muitos emojis!`;
+            
+            const response = await callGeminiAPI(prompt);
+            const formattedResponse = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            
+            resultDiv.innerHTML = formattedResponse;
+            loadingDiv.classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            inputField.disabled = false;
+        }
+
         async function gerarQuiz() {
             const inputField = document.getElementById('quiz-input');
             const input = inputField.value.trim();
@@ -612,8 +587,6 @@
             Não use marcação Markdown como (\`\`\`html), retorne apenas o texto com as tags HTML embutidas de forma limpa.`;
             
             const response = await callGeminiAPI(prompt);
-            
-            // Remove potential markdown code blocks if the LLM included them
             const cleanResponse = response.replace(/```html|```/g, '');
             
             resultDiv.innerHTML = cleanResponse;
@@ -622,7 +595,6 @@
             inputField.disabled = false;
         }
 
-        // Feature 6: Gerador de Resumo (Gemini API)
         async function gerarResumo() {
             const inputField = document.getElementById('resumo-input');
             const input = inputField.value.trim();
@@ -647,8 +619,6 @@
             6. Use alguns emojis para deixar a leitura leve e atrativa para os jovens.`;
             
             const response = await callGeminiAPI(prompt);
-            
-            // Remove potential markdown code blocks if the LLM included them
             const cleanResponse = response.replace(/```html|```/g, '');
             
             resultDiv.innerHTML = cleanResponse;
@@ -657,29 +627,22 @@
             inputField.disabled = false;
         }
 
-        // On Load
         document.addEventListener('DOMContentLoaded', () => {
             initCharts();
-            // Highlight default nav
             document.getElementById('btn-intro').classList.remove('bg-blue-800');
             document.getElementById('btn-intro').classList.add('bg-blue-600', 'border-l-4', 'border-white');
         });
 
-        // Functional Navigation
         function navTo(sectionId) {
-            // Hide all sections
             document.querySelectorAll('.content-section').forEach(sec => {
                 sec.classList.add('hidden');
-                sec.classList.remove('fade-in'); // reset animation
+                sec.classList.remove('fade-in'); 
             });
 
-            // Show selected
             const target = document.getElementById('sec-' + sectionId);
             target.classList.remove('hidden');
-            // Small timeout to trigger CSS animation restart
             setTimeout(() => target.classList.add('fade-in'), 10);
 
-            // Update Nav styling
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-blue-600', 'border-l-4', 'border-white');
                 btn.classList.add('hover:bg-blue-800');
@@ -690,12 +653,9 @@
             activeBtn.classList.add('bg-blue-600', 'border-l-4', 'border-white');
 
             currentSectionId = sectionId;
-            
-            // Scroll top main area
             document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Interactive Flashcards (Mileto)
         function flipCard(cardElement) {
             const inner = cardElement.querySelector('.transform-style-3d');
             if (inner.style.transform === 'rotateY(180deg)') {
@@ -705,7 +665,6 @@
             }
         }
 
-        // Interactive Debate Toggle (Movimento)
         function toggleDebate(view) {
             const btnHeraclito = document.getElementById('btn-heraclito');
             const btnParmenides = document.getElementById('btn-parmenides');
@@ -716,22 +675,17 @@
             if (view === 'heraclito') {
                 btnHeraclito.classList.remove('opacity-60', 'bg-gray-400');
                 btnHeraclito.classList.add('ring-4', 'ring-orange-200', 'bg-accent');
-                
                 btnParmenides.classList.add('opacity-60', 'bg-pmmg');
                 btnParmenides.classList.remove('ring-4', 'ring-blue-200');
-
                 contentParmenides.classList.add('hidden');
                 contentHeraclito.classList.remove('hidden');
                 container.classList.remove('border-pmmg');
                 container.classList.add('border-accent');
-                
             } else {
                 btnParmenides.classList.remove('opacity-60', 'bg-gray-400');
                 btnParmenides.classList.add('ring-4', 'ring-blue-200', 'bg-pmmg');
-                
                 btnHeraclito.classList.add('opacity-60', 'bg-accent');
                 btnHeraclito.classList.remove('ring-4', 'ring-orange-200');
-
                 contentHeraclito.classList.add('hidden');
                 contentParmenides.classList.remove('hidden');
                 container.classList.remove('border-accent');
@@ -739,16 +693,14 @@
             }
         }
 
-        // Charts Initialization
         function initCharts() {
-            // Chart 1: Doughnut for Pluralists
             const ctxPlural = document.getElementById('pluralistChart').getContext('2d');
             doughnutChartInst = new Chart(ctxPlural, {
                 type: 'doughnut',
                 data: {
                     labels: ['Terra 🪨', 'Fogo 🔥', 'Ar 🌬️', 'Água 💧'],
                     datasets: [{
-                        data: [25, 25, 25, 25], // Equal parts for visual representation
+                        data: [25, 25, 25, 25], 
                         backgroundColor: ['#8B4513', '#c2410c', '#e0f2fe', '#3b82f6'],
                         borderWidth: 2,
                         borderColor: '#fff'
@@ -770,7 +722,6 @@
                 }
             });
 
-            // Chart 2: Conceptual Bar Chart for Science section
             const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
             barChartInst = new Chart(ctxTimeline, {
                 type: 'bar',
